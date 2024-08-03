@@ -4,11 +4,27 @@ import Arrow from './icons/Arrow';
 import { bear, coin, highVoltage, notcoin, rocket, trophy } from './images';
 
 const App = () => {
-  const [points, setPoints] = useState(0);
-  const [energy, setEnergy] = useState(5000);
+  const [points, setPoints] = useState(() => {
+    const savedPoints = localStorage.getItem('points');
+    return savedPoints ? parseInt(savedPoints, 10) : 0;
+  });
+  const [energy, setEnergy] = useState(() => {
+    const savedEnergy = localStorage.getItem('energy');
+    return savedEnergy ? parseInt(savedEnergy, 10) : 5000;
+  });
   const [clicks, setClicks] = useState<{ id: number, x: number, y: number }[]>([]);
+  const [activePopup, setActivePopup] = useState<string | null>(null);
+
   const pointsToAdd = 1;
   const energyToReduce = 1;
+
+  useEffect(() => {
+    localStorage.setItem('points', points.toString());
+  }, [points]);
+
+  useEffect(() => {
+    localStorage.setItem('energy', energy.toString());
+  }, [energy]);
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (energy - energyToReduce < 0) {
@@ -27,6 +43,10 @@ const App = () => {
     setClicks((prevClicks) => prevClicks.filter(click => click.id !== id));
   };
 
+  const handlePopup = (popup: string) => {
+    setActivePopup(popup);
+  };
+
   // useEffect hook to restore energy over time
   useEffect(() => {
     const interval = setInterval(() => {
@@ -36,20 +56,50 @@ const App = () => {
     return () => clearInterval(interval); // Clear interval on component unmount
   }, []);
 
+  const Popup = ({ title, content, onClose }: { title: string, content: string, onClose: () => void }) => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
+      <div className="bg-white text-black p-4 rounded-xl shadow-lg">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold">{title}</h2>
+          <button onClick={onClose} className="text-lg font-bold">X</button>
+        </div>
+        <p>{content}</p>
+      </div>
+    </div>
+  );
+  const PopupWithOptions = ({ title, options, onClose }: { title: string, options: string[], onClose: () => void }) => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
+      <div className="bg-white text-black p-4 rounded-xl shadow-lg">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold">{title}</h2>
+          <button onClick={onClose} className="text-lg font-bold">X</button>
+        </div>
+        <div className="mt-4">
+          {options.map((option, index) => (
+            <div key={index} className="flex items-center justify-between p-2 bg-gray-200 rounded mb-2">
+              <span>{option}</span>
+              <button className="flex items-center px-3 py-1 bg-blue-500 text-white rounded">
+                <img src="buy-icon.png" alt="Buy" className="w-4 h-4 mr-1" />
+                Buy
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="bg-gradient-main min-h-screen px-4 flex flex-col items-center text-white font-medium">
-
       <div className="absolute inset-0 h-1/2 bg-gradient-overlay z-0"></div>
       <div className="absolute inset-0 flex items-center justify-center z-0">
         <div className="radial-gradient-overlay"></div>
       </div>
-
       <div className="w-full z-10 min-h-screen flex flex-col items-center text-white">
-
         <div className="fixed top-0 left-0 w-full px-4 pt-8 z-10 flex flex-col items-center text-white">
           <div className="w-full cursor-pointer">
             <div className="bg-[#1f1f1f] text-center py-2 rounded-xl">
-              <p className="text-lg">Join squad <Arrow size={18} className="ml-0 mb-1 inline-block" /></p>
+              <p className="text-lg">Join Telegram Channel <Arrow size={18} className="ml-0 mb-1 inline-block" /></p>
             </div>
           </div>
           <div className="mt-12 text-5xl font-bold flex items-center">
@@ -61,8 +111,6 @@ const App = () => {
             <span className="ml-1">Gold <Arrow size={18} className="ml-0 mb-1 inline-block" /></span>
           </div>
         </div>
-
-
         <div className="fixed bottom-0 left-0 w-full px-4 pb-4 z-10">
           <div className="w-full flex justify-between gap-2">
             <div className="w-1/3 flex items-center justify-start max-w-32">
@@ -76,17 +124,17 @@ const App = () => {
             </div>
             <div className="flex-grow flex items-center max-w-60 text-sm">
               <div className="w-full bg-[#fad258] py-4 rounded-2xl flex justify-around">
-                <button className="flex flex-col items-center gap-1">
+                <button className="flex flex-col items-center gap-1" onClick={() => handlePopup('Frens')}>
                   <img src={bear} width={24} height={24} alt="High Voltage" />
                   <span>Frens</span>
                 </button>
                 <div className="h-[48px] w-[2px] bg-[#fddb6d]"></div>
-                <button className="flex flex-col items-center gap-1">
+                <button className="flex flex-col items-center gap-1" onClick={() => handlePopup('Earn')}>
                   <img src={coin} width={24} height={24} alt="High Voltage" />
                   <span>Earn</span>
                 </button>
                 <div className="h-[48px] w-[2px] bg-[#fddb6d]"></div>
-                <button className="flex flex-col items-center gap-1">
+                <button className="flex flex-col items-center gap-1" onClick={() => handlePopup('Boosts')}>
                   <img src={rocket} width={24} height={24} alt="High Voltage" />
                   <span>Boosts</span>
                 </button>
@@ -97,8 +145,6 @@ const App = () => {
             <div className="bg-gradient-to-r from-[#f3c45a] to-[#fffad0] h-4 rounded-full" style={{ width: `${(energy / 6500) * 100}%` }}></div>
           </div>
         </div>
-
-
         <div className="flex-grow flex items-center justify-center">
           <div className="relative mt-4" onClick={handleClick}>
             <img src={notcoin} width={256} height={256} alt="notcoin" />
@@ -118,8 +164,29 @@ const App = () => {
             ))}
           </div>
         </div>
-
       </div>
+      {/* Pop-up rendering */}
+      {activePopup === 'Frens' && (
+        <Popup 
+          title="Frens" 
+          content="This is the Frens pop-up content."
+          onClose={() => setActivePopup(null)}
+        />
+      )}
+      {activePopup === 'Earn' && (
+        <Popup 
+          title="Earn" 
+          content="This is the Earn pop-up content."
+          onClose={() => setActivePopup(null)}
+        />
+      )}
+      {activePopup === 'Boosts' && (
+        <PopupWithOptions 
+        title="Boost Options" 
+        options={['Option 1', 'Option 2']}
+        onClose={() => setActivePopup(null)}
+      />
+      )}
     </div>
   );
 };
