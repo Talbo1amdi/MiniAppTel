@@ -12,11 +12,11 @@ const App = () => {
     const savedEnergy = localStorage.getItem('energy');
     return savedEnergy ? parseInt(savedEnergy, 10) : 5000;
   });
-  const [clicks, setClicks] = useState<{ id: number, x: number, y: number }[]>([]);
+  const [clicks, setClicks] = useState<{ id: number, x: number, y: number, pointsAdded: number }[]>([]);
   const [activePopup, setActivePopup] = useState<string | null>(null);
 
-  const pointsToAdd = 1;
-  const energyToReduce = 1;
+  const pointsToAdd = 100;
+  const energyToReduce = 100;
 
   useEffect(() => {
     localStorage.setItem('points', points.toString());
@@ -36,7 +36,7 @@ const App = () => {
 
     setPoints(points + pointsToAdd);
     setEnergy(energy - energyToReduce < 0 ? 0 : energy - energyToReduce);
-    setClicks([...clicks, { id: Date.now(), x, y }]);
+    setClicks([...clicks, { id: Date.now(), x, y, pointsAdded: pointsToAdd }]);
   };
 
   const handleAnimationEnd = (id: number) => {
@@ -67,6 +67,7 @@ const App = () => {
       </div>
     </div>
   );
+
   const PopupWithOptions = ({ title, options, onClose }: { title: string, options: string[], onClose: () => void }) => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
       <div className="bg-white text-black p-4 rounded-xl shadow-lg">
@@ -99,7 +100,9 @@ const App = () => {
         <div className="fixed top-0 left-0 w-full px-4 pt-8 z-10 flex flex-col items-center text-white">
           <div className="w-full cursor-pointer">
             <div className="bg-[#1f1f1f] text-center py-2 rounded-xl">
-              <p className="text-lg">Join Telegram Channel <Arrow size={18} className="ml-0 mb-1 inline-block" /></p>
+              <a href="https://t.me/pme_metavers" className="text-lg">
+                Join Telegram Channel <Arrow size={18} className="ml-0 mb-1 inline-block" />
+              </a>
             </div>
           </div>
           <div className="mt-12 text-5xl font-bold flex items-center">
@@ -159,7 +162,7 @@ const App = () => {
                 }}
                 onAnimationEnd={() => handleAnimationEnd(click.id)}
               >
-                1
+                {click.pointsAdded}
               </div>
             ))}
           </div>
@@ -169,21 +172,21 @@ const App = () => {
       {activePopup === 'Frens' && (
         <Popup 
           title="Frens" 
-          content="This is the Frens pop-up content."
+          content="Wait for Frens content."
           onClose={() => setActivePopup(null)}
         />
       )}
       {activePopup === 'Earn' && (
         <Popup 
           title="Earn" 
-          content="This is the Earn pop-up content."
+          content="Wait for Earn content."
           onClose={() => setActivePopup(null)}
         />
       )}
       {activePopup === 'Boosts' && (
-        <PopupWithOptions 
-        title="Boost Options" 
-        options={['Option 1', 'Option 2']}
+        <Popup 
+        title="Earn" 
+        content="Wait for Boost content."
         onClose={() => setActivePopup(null)}
       />
       )}
