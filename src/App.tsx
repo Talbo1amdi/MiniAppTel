@@ -68,27 +68,6 @@ const App = () => {
     </div>
   );
 
-  const PopupWithOptions = ({ title, options, onClose }: { title: string, options: string[], onClose: () => void }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
-      <div className="bg-white text-black p-4 rounded-xl shadow-lg">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold">{title}</h2>
-          <button onClick={onClose} className="text-lg font-bold">X</button>
-        </div>
-        <div className="mt-4">
-          {options.map((option, index) => (
-            <div key={index} className="flex items-center justify-between p-2 bg-gray-200 rounded mb-2">
-              <span>{option}</span>
-              <button className="flex items-center px-3 py-1 bg-blue-500 text-white rounded">
-                <img src="buy-icon.png" alt="Buy" className="w-4 h-4 mr-1" />
-                Buy
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="bg-gradient-main min-h-screen px-4 flex flex-col items-center text-white font-medium">
