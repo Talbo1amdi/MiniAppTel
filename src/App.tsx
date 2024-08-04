@@ -4,19 +4,22 @@ import Arrow from './icons/Arrow';
 import { bear, coin, highVoltage, notcoin, rocket, trophy } from './images';
 
 const App = () => {
+  const pointsToAdd = 100;
+  const energyToReduce = 100;
+  const maxEnergy = 6500;
+  const energyRestoreRate = 1; // Energy points restored per tick
+  const energyRestoreInterval = 100; // Interval in milliseconds
+
   const [points, setPoints] = useState(() => {
     const savedPoints = localStorage.getItem('points');
     return savedPoints ? parseInt(savedPoints, 10) : 0;
   });
   const [energy, setEnergy] = useState(() => {
     const savedEnergy = localStorage.getItem('energy');
-    return savedEnergy ? parseInt(savedEnergy, 10) : 5000;
+    return savedEnergy ? parseInt(savedEnergy, 10) : maxEnergy;
   });
   const [clicks, setClicks] = useState<{ id: number, x: number, y: number, pointsAdded: number }[]>([]);
   const [activePopup, setActivePopup] = useState<string | null>(null);
-
-  const pointsToAdd = 100;
-  const energyToReduce = 100;
 
   useEffect(() => {
     localStorage.setItem('points', points.toString());
@@ -35,7 +38,7 @@ const App = () => {
     const y = e.clientY - rect.top;
 
     setPoints(points + pointsToAdd);
-    setEnergy(energy - energyToReduce < 0 ? 0 : energy - energyToReduce);
+    setEnergy(Math.max(energy - energyToReduce, 0));
     setClicks([...clicks, { id: Date.now(), x, y, pointsAdded: pointsToAdd }]);
   };
 
@@ -47,13 +50,27 @@ const App = () => {
     setActivePopup(popup);
   };
 
-  // useEffect hook to restore energy over time
   useEffect(() => {
+    const lastActiveTime = localStorage.getItem('lastActiveTime');
+    if (lastActiveTime) {
+      const timeDifference = Date.now() - parseInt(lastActiveTime, 10);
+      const energyRestored = Math.floor(timeDifference / energyRestoreInterval) * energyRestoreRate;
+      setEnergy((prevEnergy) => Math.min(prevEnergy + energyRestored, maxEnergy));
+    }
     const interval = setInterval(() => {
-      setEnergy((prevEnergy) => Math.min(prevEnergy + 1, 6500));
-    }, 100); // Restore 10 energy points every second
+      setEnergy((prevEnergy) => Math.min(prevEnergy + energyRestoreRate, maxEnergy));
+    }, energyRestoreInterval);
 
-    return () => clearInterval(interval); // Clear interval on component unmount
+    window.addEventListener('beforeunload', () => {
+      localStorage.setItem('lastActiveTime', Date.now().toString());
+    });
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', () => {
+        localStorage.setItem('lastActiveTime', Date.now().toString());
+      });
+    };
   }, []);
 
   const Popup = ({ title, content, onClose }: { title: string, content: string, onClose: () => void }) => (
@@ -67,7 +84,6 @@ const App = () => {
       </div>
     </div>
   );
-
 
   return (
     <div className="bg-gradient-main min-h-screen px-4 flex flex-col items-center text-white font-medium">
@@ -100,7 +116,7 @@ const App = () => {
                 <img src={highVoltage} width={44} height={44} alt="High Voltage" />
                 <div className="ml-2 text-left">
                   <span className="text-white text-2xl font-bold block">{energy}</span>
-                  <span className="text-white text-large opacity-75">/ 6500</span>
+                  <span className="text-white text-large opacity-75">/ {maxEnergy}</span>
                 </div>
               </div>
             </div>
@@ -124,7 +140,7 @@ const App = () => {
             </div>
           </div>
           <div className="w-full bg-[#f9c035] rounded-full mt-4">
-            <div className="bg-gradient-to-r from-[#f3c45a] to-[#fffad0] h-4 rounded-full" style={{ width: `${(energy / 6500) * 100}%` }}></div>
+            <div className="bg-gradient-to-r from-[#f3c45a] to-[#fffad0] h-4 rounded-full" style={{ width: `${(energy / maxEnergy) * 100}%` }}></div>
           </div>
         </div>
         <div className="flex-grow flex items-center justify-center">
@@ -164,7 +180,7 @@ const App = () => {
       )}
       {activePopup === 'Boosts' && (
         <Popup 
-        title="Earn" 
+        title="Boosts" 
         content="Wait for Boost content."
         onClose={() => setActivePopup(null)}
       />
